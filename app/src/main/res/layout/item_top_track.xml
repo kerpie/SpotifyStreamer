@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/top_track_album"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="#00b0e3"
+        android:layout_margin="10dp"
+        android:scaleType="centerCrop"/>
+
+    <LinearLayout
+        android:id="@+id/album_data_container"
+        android:layout_toRightOf="@+id/top_track_album"
+        android:layout_width="match_parent"
+        android:layout_centerVertical="true"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/song_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:text="song title"/>
+        <TextView
+            android:id="@+id/album_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:text="album title"/>
+    </LinearLayout>
+</RelativeLayout>
