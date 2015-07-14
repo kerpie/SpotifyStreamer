@@ -5,4 +5,6 @@
     <string name="artist_error_message">0 artist found with that name</string>
     <string name="top_error_message">This artist doesn\'t have top tracks</string>
     <string name="hint">Name of the artist to search</string>
+
+    <string name="connection_error">No internet connection available, please check your connection and try again</string>
 </resources>

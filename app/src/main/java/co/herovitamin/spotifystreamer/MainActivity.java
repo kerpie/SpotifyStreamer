@@ -1,9 +1,10 @@
 package co.herovitamin.spotifystreamer;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +17,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -54,8 +56,9 @@ public class MainActivity extends AppCompatActivity {
         layout_manager = new LinearLayoutManager(this);
         artist_list.setLayoutManager(layout_manager);
 
-
         setSupportActionBar(main_toolbar);
+
+
     }
 
     @Override
@@ -65,7 +68,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    new SearchArtist(query.getText().toString()).execute();
+
+                    boolean is_network_available = check_connectivity();
+                    if(is_network_available)
+                        new SearchArtist(query.getText().toString()).execute();
+                    else
+                        Toast.makeText(MainActivity.this, R.string.connection_error, Toast.LENGTH_SHORT ).show();
 
                     InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     in.hideSoftInputFromWindow(query.getWindowToken(), 0);
@@ -74,6 +82,14 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    private boolean check_connectivity() {
+
+        ConnectivityManager connectivity_manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo network = connectivity_manager.getActiveNetworkInfo();
+
+        return network != null && network.isConnectedOrConnecting();
     }
 
     @Override

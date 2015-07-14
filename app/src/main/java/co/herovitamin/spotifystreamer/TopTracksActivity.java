@@ -1,5 +1,7 @@
 package co.herovitamin.spotifystreamer;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -67,7 +70,11 @@ public class TopTracksActivity extends AppCompatActivity implements OnTaskDone{
             top_tracks.setAdapter(new TopTrackAdapter(TopTracksActivity.this, my_tracks));
         }
         else{
-            new SearchTopTracks(this, artist_name, artist_id).execute();
+            boolean is_network_available = check_connectivity();
+            if(is_network_available)
+                new SearchTopTracks(this, artist_name, artist_id).execute();
+            else
+                Toast.makeText(this, R.string.connection_error, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -91,6 +98,13 @@ public class TopTracksActivity extends AppCompatActivity implements OnTaskDone{
         return super.onOptionsItemSelected(item);
     }
 
+    private boolean check_connectivity() {
+
+        ConnectivityManager connectivity_manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo network = connectivity_manager.getActiveNetworkInfo();
+
+        return network != null && network.isConnectedOrConnecting();
+    }
 
     @Override
     public void onPrepareStuff() {
