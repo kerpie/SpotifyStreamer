@@ -15,15 +15,16 @@ import java.util.List;
 
 import co.herovitamin.spotifystreamer.R;
 import co.herovitamin.spotifystreamer.TopTracksActivity;
+import co.herovitamin.spotifystreamer.models.MyTrack;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.Track;
 
 public class TopTrackAdapter extends RecyclerView.Adapter<TopTrackAdapter.ViewHolder> {
 
-    List<Track> tracks;
+    List<MyTrack> tracks;
     Context context;
 
-    public TopTrackAdapter(Context context, List<Track> tracks) {
+    public TopTrackAdapter(Context context, List<MyTrack> tracks) {
         this.context = context;
         this.tracks = tracks;
     }
@@ -43,20 +44,19 @@ public class TopTrackAdapter extends RecyclerView.Adapter<TopTrackAdapter.ViewHo
     @Override
     public TopTrackAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_top_track, parent, false);
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        return new ViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String name = tracks.get(position).name == null ? "no name" : tracks.get(position).name;
-        String album_name = tracks.get(position).album.name == null ? "no album" : tracks.get(position).album.name;
+        String name = tracks.get(position).getTrack_name() == null ? "no name" : tracks.get(position).getTrack_name();
+        String album_name = tracks.get(position).getTrack_album() == null ? "no album" : tracks.get(position).getTrack_album();
 
         holder.track_name.setText(name);
         holder.track_album.setText(album_name);
-        if(tracks.get(position).album.images.size() > 0){
+        if(tracks.get(position).getTrack_image_url() != null){
             Picasso.with(context)
-                    .load(tracks.get(position).album.images.get(0).url)
+                    .load(tracks.get(position).getTrack_image_url())
                     .into(holder.track_image);
         }
     }

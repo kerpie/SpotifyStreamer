@@ -1,6 +1,5 @@
 package co.herovitamin.spotifystreamer;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -12,33 +11,37 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.ArrayList;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import co.herovitamin.spotifystreamer.adapters.TopTrackAdapter;
-import kaaes.spotify.webapi.android.SpotifyApi;
-import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Tracks;
+import co.herovitamin.spotifystreamer.interfaces.OnTaskDone;
+import co.herovitamin.spotifystreamer.models.MyTrack;
+import co.herovitamin.spotifystreamer.tracks.SearchTopTracks;
 
 
-public class TopTracksActivity extends AppCompatActivity {
+public class TopTracksActivity extends AppCompatActivity implements OnTaskDone{
 
-    String artist_name, artist_image, artist_id;
+    @Bind(R.id.main_toolbar)
     Toolbar top_tracks_toolbar;
+    @Bind(R.id.top_tracks_list)
     RecyclerView top_tracks;
-    RecyclerView.LayoutManager layout_manager;
+    @Bind(R.id.error_message)
     TextView error_message;
+    @Bind(R.id.artist_loader)
     ProgressBar loader;
+
+    RecyclerView.LayoutManager layout_manager;
+    String artist_name, artist_image, artist_id;
+    ArrayList<MyTrack> my_tracks = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_tracks);
 
-        top_tracks_toolbar = (Toolbar) findViewById(R.id.main_toolbar);
-        top_tracks = (RecyclerView) findViewById(R.id.top_tracks_list);
-        error_message = (TextView) findViewById(R.id.error_message);
-        loader = (ProgressBar) findViewById(R.id.artist_loader);
+        ButterKnife.bind(this);
 
         artist_name = getIntent().getStringExtra("artist_name");
         artist_id = getIntent().getStringExtra("artist_id");
@@ -50,13 +53,31 @@ public class TopTracksActivity extends AppCompatActivity {
         setSupportActionBar(top_tracks_toolbar);
         setTitle(artist_name + "'s top tracks");
 
+        if(savedInstanceState != null){
+            my_tracks = savedInstanceState.getParcelableArrayList("result");
+        }
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        new SearchTopTracks().execute();
+        if(my_tracks != null){
+            top_tracks.setAdapter(new TopTrackAdapter(TopTracksActivity.this, my_tracks));
+        }
+        else{
+            new SearchTopTracks(this, artist_name, artist_id).execute();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+        if(my_tracks != null)
+            outState.putParcelableArrayList("result", my_tracks);
+
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -70,40 +91,23 @@ public class TopTracksActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public class SearchTopTracks extends AsyncTask<Void, Integer, Void>{
 
-        Tracks tracks_result;
+    @Override
+    public void onPrepareStuff() {
+        error_message.setVisibility(View.GONE);
+        top_tracks.setVisibility(View.GONE);
+        loader.setVisibility(View.VISIBLE);
+    }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            error_message.setVisibility(View.GONE);
-            top_tracks.setVisibility(View.GONE);
-            loader.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            SpotifyApi api = new SpotifyApi();
-            SpotifyService spotify = api.getService();
-            Map<String, Object> options =new Hashtable<String, Object>();
-            options.put("country", "US");
-            tracks_result = spotify.getArtistTopTrack(artist_id, options);
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            if(tracks_result.tracks != null && tracks_result.tracks.size() > 0) {
-                top_tracks.setAdapter(new TopTrackAdapter(TopTracksActivity.this, tracks_result.tracks));
+    @Override
+    public void onTaskDone(ArrayList<MyTrack> tracks_result) {
+        if(my_tracks != null) {
+            my_tracks = tracks_result;
+            if (tracks_result != null && tracks_result.size() > 0) {
+                top_tracks.setAdapter(new TopTrackAdapter(TopTracksActivity.this, my_tracks));
                 error_message.setVisibility(View.GONE);
                 top_tracks.setVisibility(View.VISIBLE);
-            }
-            else{
+            } else {
                 error_message.setVisibility(View.VISIBLE);
                 error_message.setText(R.string.top_error_message);
                 top_tracks.setVisibility(View.GONE);

@@ -3,6 +3,7 @@ package co.herovitamin.spotifystreamer;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import co.herovitamin.spotifystreamer.adapters.ArtistAdapter;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -26,25 +29,27 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 
 public class MainActivity extends AppCompatActivity {
 
+    @Bind(R.id.artist_list)
     RecyclerView artist_list;
-    ArtistAdapter artist_adapter;
+    @Bind(R.id.error_message)
     TextView error_message;
+    @Bind(R.id.artist_loader)
     ProgressBar loader;
+    @Bind(R.id.search_query)
     EditText query;
-
-    RecyclerView.LayoutManager layout_manager;
+    @Bind(R.id.main_toolbar)
     Toolbar main_toolbar;
+
+    ArtistAdapter artist_adapter;
+    RecyclerView.LayoutManager layout_manager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        artist_list = (RecyclerView) findViewById(R.id.artist_list);
-        main_toolbar = (Toolbar) findViewById(R.id.main_toolbar);
-        error_message = (TextView) findViewById(R.id.error_message);
-        loader = (ProgressBar) findViewById(R.id.artist_loader);
-        query = (EditText) findViewById(R.id.search_query);
+        ButterKnife.bind(this);
 
         layout_manager = new LinearLayoutManager(this);
         artist_list.setLayoutManager(layout_manager);
@@ -71,10 +76,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+
+
+        super.onSaveInstanceState(outState);
+    }
+
     public class SearchArtist extends AsyncTask<Void, Integer, Void>{
 
         ArtistsPager results;
         String artist_name;
+        List<Artist> result_artists;
 
         public SearchArtist(String artist_name){
             this.artist_name = artist_name;
@@ -104,7 +118,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            List<Artist> result_artists = results.artists.items;
+            result_artists = results.artists.items;
+
             if(result_artists != null && result_artists.size() > 0) {
                 artist_adapter = new ArtistAdapter(result_artists, MainActivity.this);
                 artist_list.setAdapter(artist_adapter);
