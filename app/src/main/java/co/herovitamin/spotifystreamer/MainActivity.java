@@ -19,17 +19,21 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import co.herovitamin.spotifystreamer.adapters.ArtistAdapter;
+import co.herovitamin.spotifystreamer.interfaces.OnArtistSearchDone;
+import co.herovitamin.spotifystreamer.models.MyArtist;
+import co.herovitamin.spotifystreamer.tracks.SearchArtist;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnArtistSearchDone{
 
     @Bind(R.id.artist_list)
     RecyclerView artist_list;
@@ -45,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     ArtistAdapter artist_adapter;
     RecyclerView.LayoutManager layout_manager;
 
+    ArrayList<MyArtist> artists;
+    boolean there_is_result_in_search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +64,20 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(main_toolbar);
 
+        if(savedInstanceState != null){
+            artists = savedInstanceState.getParcelableArrayList("artist_search_result");
+            if(artists != null){
+                artist_adapter = new ArtistAdapter(artists, this);
+                artist_list.setAdapter(artist_adapter);
+            }
+            if(!there_is_result_in_search){
+                there_is_result_in_search = false;
+                error_message.setVisibility(View.VISIBLE);
+                error_message.setText(R.string.artist_error_message);
+                artist_list.setVisibility(View.GONE);
+            }
+
+        }
 
     }
 
@@ -70,10 +90,11 @@ public class MainActivity extends AppCompatActivity {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
 
                     boolean is_network_available = check_connectivity();
-                    if(is_network_available)
-                        new SearchArtist(query.getText().toString()).execute();
-                    else
-                        Toast.makeText(MainActivity.this, R.string.connection_error, Toast.LENGTH_SHORT ).show();
+                    if (is_network_available) {
+                        there_is_result_in_search = true;
+                        new SearchArtist(MainActivity.this, query.getText().toString()).execute();
+                    } else
+                        Toast.makeText(MainActivity.this, R.string.connection_error, Toast.LENGTH_SHORT).show();
 
                     InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     in.hideSoftInputFromWindow(query.getWindowToken(), 0);
@@ -95,63 +116,34 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
 
-
-
+        outState.putParcelableArrayList("artist_search_result",artists);
+        outState.putBoolean("search_result", there_is_result_in_search);
         super.onSaveInstanceState(outState);
     }
 
-    public class SearchArtist extends AsyncTask<Void, Integer, Void>{
+    @Override
+    public void prepare_stuff_before_search_for_artist() {
+        error_message.setVisibility(View.GONE);
+        artist_list.setVisibility(View.GONE);
+        loader.setVisibility(View.VISIBLE);
+    }
 
-        ArtistsPager results;
-        String artist_name;
-        List<Artist> result_artists;
-
-        public SearchArtist(String artist_name){
-            this.artist_name = artist_name;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+    @Override
+    public void on_search_done(ArrayList<MyArtist> artists) {
+        this.artists = artists;
+        if(artists != null && artists.size() > 0) {
+            artist_adapter = new ArtistAdapter(artists, this);
+            artist_list.setAdapter(artist_adapter);
             error_message.setVisibility(View.GONE);
+            artist_list.setVisibility(View.VISIBLE);
+        }
+        else{
+            there_is_result_in_search = false;
+            error_message.setVisibility(View.VISIBLE);
+            error_message.setText(R.string.artist_error_message);
             artist_list.setVisibility(View.GONE);
-            loader.setVisibility(View.VISIBLE);
         }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            SpotifyApi api = new SpotifyApi();
-
-            SpotifyService spotify = api.getService();
-
-            results = spotify.searchArtists(artist_name);
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            result_artists = results.artists.items;
-
-            if(result_artists != null && result_artists.size() > 0) {
-                artist_adapter = new ArtistAdapter(result_artists, MainActivity.this);
-                artist_list.setAdapter(artist_adapter);
-                error_message.setVisibility(View.GONE);
-                artist_list.setVisibility(View.VISIBLE);
-                Log.i("RESULT", "encontrado");
-                Log.i("RESULT", "encontrados: " + result_artists.size());
-            }
-            else{
-                error_message.setVisibility(View.VISIBLE);
-                error_message.setText(R.string.artist_error_message);
-                artist_list.setVisibility(View.GONE);
-                Log.i("RESULT", "no encontrado");
-            }
-            loader.setVisibility(View.GONE);
-        }
+        loader.setVisibility(View.GONE);
     }
 
 }

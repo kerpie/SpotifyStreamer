@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -19,12 +20,12 @@ import java.util.ArrayList;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import co.herovitamin.spotifystreamer.adapters.TopTrackAdapter;
-import co.herovitamin.spotifystreamer.interfaces.OnTaskDone;
+import co.herovitamin.spotifystreamer.interfaces.OnTopTracksSearchDone;
 import co.herovitamin.spotifystreamer.models.MyTrack;
 import co.herovitamin.spotifystreamer.tracks.SearchTopTracks;
 
 
-public class TopTracksActivity extends AppCompatActivity implements OnTaskDone{
+public class TopTracksActivity extends AppCompatActivity implements OnTopTracksSearchDone {
 
     @Bind(R.id.main_toolbar)
     Toolbar top_tracks_toolbar;
@@ -115,7 +116,7 @@ public class TopTracksActivity extends AppCompatActivity implements OnTaskDone{
 
     @Override
     public void onTaskDone(ArrayList<MyTrack> tracks_result) {
-        if(my_tracks != null) {
+        if(tracks_result != null) {
             my_tracks = tracks_result;
             if (tracks_result != null && tracks_result.size() > 0) {
                 top_tracks.setAdapter(new TopTrackAdapter(TopTracksActivity.this, my_tracks));
@@ -128,5 +129,11 @@ public class TopTracksActivity extends AppCompatActivity implements OnTaskDone{
             }
             loader.setVisibility(View.GONE);
         }
+            else {
+                error_message.setVisibility(View.VISIBLE);
+                error_message.setText(R.string.top_error_message);
+                top_tracks.setVisibility(View.GONE);
+            }
+            loader.setVisibility(View.GONE);
     }
 }

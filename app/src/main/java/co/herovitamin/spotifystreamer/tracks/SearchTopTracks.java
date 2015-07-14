@@ -7,7 +7,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import co.herovitamin.spotifystreamer.interfaces.OnTaskDone;
+import co.herovitamin.spotifystreamer.interfaces.OnTopTracksSearchDone;
 import co.herovitamin.spotifystreamer.models.MyTrack;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -17,12 +17,12 @@ import retrofit.RetrofitError;
 public class SearchTopTracks extends AsyncTask<Void, Integer, Void> {
 
     List<Track> tracks_result;
-    OnTaskDone listener;
+    OnTopTracksSearchDone listener;
     ArrayList<MyTrack> my_tracks = null;
 
     String artist_id, artist_name;
 
-    public SearchTopTracks(OnTaskDone listener, String artist_name, String artist_id){
+    public SearchTopTracks(OnTopTracksSearchDone listener, String artist_name, String artist_id){
         this.artist_id = artist_id;
         this.artist_name = artist_name;
         this.listener = listener;

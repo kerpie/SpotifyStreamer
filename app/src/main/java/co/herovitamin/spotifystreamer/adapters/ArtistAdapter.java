@@ -11,15 +11,17 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import co.herovitamin.spotifystreamer.R;
 import co.herovitamin.spotifystreamer.TopTracksActivity;
+import co.herovitamin.spotifystreamer.models.MyArtist;
 import kaaes.spotify.webapi.android.models.Artist;
 
 public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ViewHolder> {
 
-    private static List<Artist> artists;
+    private static ArrayList<MyArtist> artists;
     private static Context context;
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -36,15 +38,15 @@ public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ViewHolder
         public void onClick(View v) {
             Intent intent = new Intent( context, TopTracksActivity.class);
 
-            intent.putExtra("artist_name", artists.get(getAdapterPosition()).name);
-            intent.putExtra("artist_id", artists.get(getAdapterPosition()).id);
-            String url = artists.get(getAdapterPosition()).images.size() > 0 ? artists.get(getAdapterPosition()).images.get(0).url : "" ;
+            intent.putExtra("artist_name", artists.get(getAdapterPosition()).getName());
+            intent.putExtra("artist_id", artists.get(getAdapterPosition()).getId());
+            String url = artists.get(getAdapterPosition()).getImage_url() != null ? artists.get(getAdapterPosition()).getImage_url() : "" ;
             intent.putExtra("artist_image", url);
             context.startActivity(intent);
         }
     }
 
-    public ArtistAdapter(List<Artist> artists, Context context) {
+    public ArtistAdapter(ArrayList<MyArtist> artists, Context context) {
         this.artists = artists;
         this.context = context;
     }
@@ -58,10 +60,10 @@ public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.artist_name.setText(artists.get(position).name);
-        if(artists.get(position).images.size() > 0){
+        holder.artist_name.setText(artists.get(position).getName());
+        if(artists.get(position).getImage_url() != null){
             Picasso.with(context)
-                    .load(artists.get(position).images.get(0).url)
+                    .load(artists.get(position).getImage_url())
                     .into(holder.artist_image);
         }
 
